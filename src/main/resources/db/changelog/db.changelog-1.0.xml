@@ -1,0 +1,928 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <!--
+    Создаем две схемы:
+        nsi - для справочников(categories,attributes,subs,products,attribute_families,attribute_groups,...)
+        cust - для пользователей и все то что с ними в связке(roles,user_roles,user_subs,...)
+    -->
+    <changeSet id="create_schema" author="katymtayev">
+        <sql dbms="postgresql" endDelimiter=";">
+            CREATE SCHEMA nsi
+        </sql>
+        <sql dbms="postgresql" endDelimiter=";">
+            CREATE SCHEMA cust
+        </sql>
+    </changeSet>
+
+    <changeSet id="create_users_table" author="katymtayev">
+        <createTable tableName="users" schemaName="CUST">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="username" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="first_name" type="VARCHAR(100)"/>
+
+            <column name="last_name" type="VARCHAR(100)"/>
+
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+    <!--
+    Создаем пользователя Админ по умолчанию
+    -->
+    <changeSet id="insert_default_user_admin" author="katymtayev">
+        <insert tableName="users" schemaName="CUST">
+            <column name="username" value="admin"/>
+            <column name="email" value="admin@petco.com"/>
+            <column name="first_name" value="admin"/>
+            <column name="last_name" value="admin"/>
+            <!--adminPass-->
+            <column name="password" value="$2a$10$avyglupAFn4VumO5CoOkE.1UWVs/aljoSaCxUIjAA5quBDa7aDoTa"/>
+        </insert>
+    </changeSet>
+    
+    <changeSet id="create_roles_table" author="katymtayev">
+        <createTable tableName="roles" schemaName="CUST">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!--
+    Создаем две роли :
+                        ROLE_USER
+                        ROLE_ADMIN
+    -->
+    <changeSet id="insert_roles_ROLE_USER_and_ROLE_ADMIN" author="katymtayev">
+        <insert tableName="roles" schemaName="CUST">
+            <column name="name" value="ROLE_USER"/>
+        </insert>
+        <insert tableName="roles" schemaName="CUST">
+            <column name="name" value="ROLE_ADMIN"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="create_user_roles_table" author="katymtayev">
+        <createTable tableName="user_roles" schemaName="CUST">
+            <column name="user_id" type="BIGINT">
+            </column>
+
+            <column name="role_id" type="BIGINT">
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="user_roles"
+                                 constraintName="fk_user_roles_user"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users" referencedTableSchemaName="CUST" baseTableSchemaName="CUST"/>
+        <addForeignKeyConstraint baseColumnNames="role_id"
+                                 baseTableName="user_roles"
+                                 constraintName="fk_user_roles_roles"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="roles" baseTableSchemaName="CUST" referencedTableSchemaName="CUST"/>
+    </changeSet>
+    <!--
+    Присваеваем две роли(ROLE_USER,ROLE_ADMIN) Админу
+    -->
+    <changeSet id="insert_user_roles_for_admin" author="katymtayev">
+        <insert tableName="user_roles" schemaName="CUST">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="1"/>
+        </insert>
+        <insert tableName="user_roles" schemaName="CUST">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="2"/>
+        </insert>
+    </changeSet>
+    
+    <changeSet id="create_attributes_table" author="katymtayev">
+        <createTable tableName="attributes" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="code" type="VARCHAR(25)">
+                <constraints unique="true" />
+            </column>
+
+            <column name="name" type="VARCHAR(100)"/>
+
+            <column name="type" type="VARCHAR(100)"/>
+
+            <column name="validation" type="VARCHAR(100)"/>
+
+            <column name="position" type="INT"/>
+
+            <column name="is_required" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="is_unique" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="value_per_locale" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="value_per_channel" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="is_filterable" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="is_configurable" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="is_user_defined" type="BOOLEAN" defaultValueBoolean="true"/>
+
+            <column name="is_visible_on_front" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create_attribute_families_table" author="katymtayev">
+        <createTable tableName="attribute_families" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="code" type="VARCHAR(25)">
+                <constraints unique="true" />
+            </column>
+
+            <column name="name" type="VARCHAR(100)"/>
+
+            <column name="is_user_defined" type="BOOLEAN" defaultValueBoolean="true"/>
+
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create_attribute_groups_table" author="katymtayev">
+        <createTable tableName="attribute_groups" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="VARCHAR(100)"/>
+
+            <column name="position" type="INT"/>
+
+            <column name="is_user_defined" type="BOOLEAN" defaultValueBoolean="true"/>
+
+            <column name="attribute_family_id" type="BIGINT"/>
+
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="attribute_groups" baseColumnNames="attribute_family_id"
+                                 constraintName="fk_attribute_groups_attribute_family"
+                                 referencedTableName="attribute_families" referencedColumnNames="id"
+                                 referencedTableSchemaName="nsi" baseTableSchemaName="nsi"/>
+        <addUniqueConstraint tableName="attribute_groups" columnNames="attribute_family_id,name" schemaName="nsi"/>
+    </changeSet>
+    
+    <changeSet id="create_attribute_group_mappings_table" author="katymtayev">
+        <createTable tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" type="BIGINT"></column>
+            <column name="attribute_group_id" type="BIGINT"></column>
+            <column name="position" type="INT"/>
+        </createTable>
+        <addPrimaryKey tableName="attribute_group_mappings" columnNames="attribute_id,attribute_group_id" schemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="attribute_group_mappings" baseColumnNames="attribute_id"
+                                 constraintName="fk_attribute_group_mappings_attribute"
+                                 referencedTableName="attributes" referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="attribute_group_mappings" baseColumnNames="attribute_group_id"
+                                 constraintName="fk_attribute_group_mappings_attribute_group"
+                                 referencedTableName="attribute_groups" referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi" />
+    </changeSet>
+    
+    <changeSet id="create_attribute_options_table" author="katymtayev">
+        <createTable tableName="attribute_options" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="attribute_id"  type="BIGINT" />
+            <column name="name" type="VARCHAR(50)" />
+            <column name="sort_order" type="INT" />
+            <column name="swatch_value" type="VARCHAR(50)" />
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="attribute_options" baseColumnNames="attribute_id"
+                                 constraintName="fk_attribute_options_attribute"
+                                 referencedTableName="attributes"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi" />
+    </changeSet>
+    
+    <changeSet id="create_partners_table" author="katymtayev">
+        <createTable tableName="partners" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)"/>
+            <column name="image" type="VARCHAR(100)"/>
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create_categories_table" author="katymtayev">
+        <createTable tableName="categories" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="parent_id" type="BIGINT"/>
+
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="slug" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="description" type="VARCHAR(100)"/>
+
+            <column name="position" type="INT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="image" type="VARCHAR(100)"/>
+
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="parent_id"
+                                 baseTableName="categories"
+                                 constraintName="fk_categories_parent"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="categories"
+                                 baseTableSchemaName="nsi"
+                                 referencedTableSchemaName="nsi"/>
+    </changeSet>
+
+    <changeSet id="create_filterable_attributes_table" author="katymtayev">
+        <createTable tableName="category_filterable_attributes" schemaName="nsi">
+            <column name="category_id" type="BIGINT" />
+            <column name="attribute_id" type="BIGINT" />
+            <column name="position" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="category_filterable_attributes" baseColumnNames="category_id"
+                                 constraintName="fk_category_filterable_attributes_category" referencedTableName="categories"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="category_filterable_attributes" baseColumnNames="attribute_id"
+                                 constraintName="fk_category_filterable_attributes_attribute" referencedTableName="attributes"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+        <addPrimaryKey tableName="category_filterable_attributes" columnNames="category_id,attribute_id" schemaName="nsi"/>
+    </changeSet>
+
+    <changeSet id="create_subs_table"  author="katymtayev">
+        <createTable tableName="subs" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sku" type="VARCHAR(100)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="attribute_family_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="INT"/>
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="subs" baseColumnNames="attribute_family_id"
+                                 constraintName="fk_subs_attribute_family"
+                                 referencedTableName="attribute_families"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+    </changeSet>
+
+    <changeSet id="create_sub_attribute_values_table"  author="katymtayev">
+        <!---->
+        <!--tags split(;) locations split(;)-->
+        <createTable tableName="sub_attribute_values" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="text_value" type="VARCHAR(100)"/>
+            <column name="boolean_value" type="BOOLEAN"/>
+            <column name="integer_value" type="INT"/>
+            <column name="float_value" type="FLOAT"/>
+            <column name="datetime_value" type="TIMESTAMP"/>
+            <column name="date_value" type="DATE"/>
+            <column name="json_value" type="JSON"/>
+            <column name="sub_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="attribute_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="sub_attribute_values" baseColumnNames="sub_id"
+                                 constraintName="fk_sub_attribute_values_sub" referencedTableName="subs"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="sub_attribute_values" baseColumnNames="attribute_id"
+                                 constraintName="fk_sub_attribute_values_attribute" referencedTableName="attributes"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+        <addUniqueConstraint tableName="sub_attribute_values" columnNames="attribute_id,sub_id" schemaName="nsi"/>
+    </changeSet>
+    
+    <changeSet id="create_products_table" author="katymtayev">
+        <createTable tableName="products" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" >
+                <constraints nullable="false" />
+            </column>
+            <column name="sku" type="VARCHAR(100)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="attribute_family_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="INT"/>
+            <column name="sub_id" type="BIGINT"/>
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="products" baseColumnNames="sub_id"
+                                 constraintName="fk_products_sub" referencedTableName="subs"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="products" baseColumnNames="attribute_family_id"
+                                 constraintName="fk_products_attribute_family"
+                                 referencedTableName="attribute_families"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+
+        <!--createProductRelationsTable-->
+        <!--<createTable tableName="product_relations" schemaName="nsi">
+            <column name="parent_id" type="BIGINT"/>
+            <column name="child_id" type="BIGINT" />
+        </createTable>
+        <addForeignKeyConstraint baseTableName="product_relations" baseColumnNames="parent_id"
+                                 constraintName="fk_product_relations_parent" referencedTableName="products"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi" />
+        <addForeignKeyConstraint baseTableName="product_relations" baseColumnNames="child_id"
+                                 constraintName="fk_product_relations_child" referencedTableName="products"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>-->
+    </changeSet>
+
+    <changeSet id="create_product_attribute_values_table"  author="katymtayev">
+        <!---->
+        <!--tags split(;) locations split(;)-->
+        <createTable tableName="product_attribute_values" schemaName="nsi">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="text_value" type="VARCHAR(100)"/>
+            <column name="boolean_value" type="BOOLEAN"/>
+            <column name="integer_value" type="INT"/>
+            <column name="float_value" type="FLOAT"/>
+            <column name="datetime_value" type="TIMESTAMP"/>
+            <column name="date_value" type="DATE"/>
+            <column name="json_value" type="JSON"/>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="attribute_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="product_attribute_values" baseColumnNames="product_id"
+                                 constraintName="fk_product_attribute_values_product" referencedTableName="products"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="product_attribute_values" baseColumnNames="attribute_id"
+                                 constraintName="fk_product_attribute_values_attribute" referencedTableName="attributes"
+                                 referencedColumnNames="id" baseTableSchemaName="nsi" referencedTableSchemaName="nsi"/>
+        <addUniqueConstraint tableName="product_attribute_values" columnNames="attribute_id,product_id" schemaName="nsi"/>
+    </changeSet>
+
+    <changeSet id="create_product_super_attributes_table" author="katymtayev">
+        <createTable tableName="product_super_attributes" schemaName="nsi">
+            <column name="product_id" type="BIGINT" />
+            <column name="attribute_id" type="BIGINT" />
+        </createTable>
+        <addForeignKeyConstraint baseTableName="product_super_attributes" baseColumnNames="product_id"
+                                 constraintName="fk_product_super_attributes_product" referencedTableName="products"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi" />
+        <addForeignKeyConstraint baseTableName="product_super_attributes" baseColumnNames="attribute_id"
+                                 constraintName="fk_product_super_attributes_attribute" referencedTableName="attributes"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi" />
+    </changeSet>
+
+    <changeSet id="create_sub_categories_table"  author="katymtayev">
+        <createTable tableName="sub_categories" schemaName="nsi">
+            <column name="sub_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="sub_categories" baseColumnNames="sub_id"
+                                 constraintName="sub_categories_sub" referencedTableName="subs"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi"/>
+        <addForeignKeyConstraint baseTableName="sub_categories" baseColumnNames="category_id"
+                                 constraintName="sub_categories_category" referencedTableName="categories"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="nsi"/>
+    </changeSet>
+
+    <!--<changeSet id="createWishlistTable" author="katymtayev">
+        <createTable tableName="wishlist" schemaName="cust">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_options" type="VARCHAR(100)"/>
+            <column name="moved_to_card" type="TIMESTAMP"/>
+            <column name="shared" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="time_of_moving" type="TIMESTAMP"/>
+            <column name="created" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="TIMESTAMP" defaultValue="NOW()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="wishlist" baseColumnNames="customer_id"
+                                 constraintName="fk_wishlist_customer" referencedTableName="users"
+                                 referencedColumnNames="id" referencedTableSchemaName="cust" baseTableSchemaName="cust"/>
+        <addForeignKeyConstraint baseTableName="wishlist" baseColumnNames="product_id"
+                                 constraintName="fk_wishlist_product" referencedTableName="products"
+                                 referencedColumnNames="id" referencedTableSchemaName="nsi" baseTableSchemaName="cust"/>
+    </changeSet>-->
+
+   <!-- <changeSet id="createViews" author="katymtayev">
+        <createView viewName="v_category_filterable_attributes" schemaName="nsi" replaceIfExists="true">
+            SELECT category_id, attribute_id FROM nsi.category_filterable_attributes ORDER BY position;
+        </createView>
+        <createView viewName="v_attribute_group_mappings" schemaName="nsi" replaceIfExists="true">
+            SELECT attribute_id, attribute_group_id FROM nsi.attribute_group_mappings ORDER BY position;
+        </createView>
+        <createView viewName="v_sub_categories" schemaName="nsi" replaceIfExists="true">
+            SELECT sub_id, category_id FROM nsi.sub_categories ORDER BY position;
+        </createView>
+    </changeSet>-->
+
+    <!--INSERT DATA-->
+    <!--<changeSet id="insertCategories" author="katymtayev">
+        <insert tableName="categories" schemaName="nsi">
+            <column name="id" value="1" />
+            <column name="name" value="Услуги" />
+            <column name="slug" value="services" />
+            <column name="position" value="1"/>
+        </insert>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="id" value="2" />
+            <column name="name" value="Покупки" />
+            <column name="slug" value="purchases" />
+            <column name="position" value="2"/>
+        </insert>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="id" value="3" />
+            <column name="name" value="Отдых" />
+            <column name="slug" value="recreations" />
+            <column name="position" value="3"/>
+        </insert>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="id" value="4" />
+            <column name="name" value="Аптеки" />
+            <column name="slug" value="pharmacies" />
+            <column name="position" value="4"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.categories_id_seq', (SELECT max(id) FROM nsi.categories))
+        </sql>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="parent_id" value="1"/>
+            <column name="name" value="Аренда" />
+            <column name="slug" value="service-1" />
+            <column name="position" value="1"/>
+        </insert>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="parent_id" value="1"/>
+            <column name="name" value="Автомойки" />
+            <column name="slug" value="service-2" />
+            <column name="position" value="2"/>
+        </insert>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="parent_id" value="1"/>
+            <column name="name" value="Барбершопы" />
+            <column name="slug" value="service-3" />
+            <column name="position" value="3"/>
+        </insert>
+        <insert tableName="categories" schemaName="nsi">
+            <column name="parent_id" value="1"/>
+            <column name="name" value="Красота и здоровье" />
+            <column name="slug" value="service-4" />
+            <column name="position" value="4"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insertAttributes" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Бренд"/>
+            <column name="code" value="brand"/>
+            <column name="type" value="integer"/>
+            <column name="is_required" value="true"/>
+            <column name="position" value="1"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Место положение"/>
+            <column name="code" value="locations"/>
+            <column name="type" value="text"/>
+            <column name="is_required" value="true"/>
+            <column name="position" value="2"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="3"/>
+            <column name="name" value="Рейтинг"/>
+            <column name="code" value="rating"/>
+            <column name="type" value="float"/>
+            <column name="is_required" value="true"/>
+            <column name="position" value="3"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="4"/>
+            <column name="name" value="Тэги"/>
+            <column name="code" value="tags"/>
+            <column name="type" value="text"/>
+            <column name="position" value="4"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="5"/>
+            <column name="name" value="Срок от"/>
+            <column name="code" value="period_from"/>
+            <column name="type" value="text"/>
+            <column name="position" value="5"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="6"/>
+            <column name="name" value="Покупка от"/>
+            <column name="code" value="money_from"/>
+            <column name="type" value="text"/>
+            <column name="position" value="6"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="7"/>
+            <column name="name" value="Экономия до"/>
+            <column name="code" value="discount_to"/>
+            <column name="type" value="integer"/>
+            <column name="position" value="7"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="8"/>
+            <column name="name" value="Цена"/>
+            <column name="code" value="price"/>
+            <column name="type" value="price"/>
+            <column name="position" value="1"/>
+            <column name="is_required" value="true"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="9"/>
+            <column name="name" value="Скидочная цена"/>
+            <column name="code" value="special_price"/>
+            <column name="type" value="price"/>
+            <column name="position" value="2"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="10"/>
+            <column name="name" value="Скидка от"/>
+            <column name="code" value="special_price_from"/>
+            <column name="type" value="date"/>
+            <column name="position" value="3"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="11"/>
+            <column name="name" value="Скидка до"/>
+            <column name="code" value="special_price_to"/>
+            <column name="type" value="date"/>
+            <column name="position" value="4"/>
+            <column name="is_visible_on_front" value="true"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.attributes_id_seq', (SELECT max(id) FROM nsi.attributes))
+        </sql>
+
+    </changeSet>
+    <changeSet id="insertDefaultAttributeFamily" author="katymtayev">
+        <insert tableName="attribute_families" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Атрибуты подписки(по умолчанию)"/>
+            <column name="code" value="default_sub" />
+            <column name="is_user_defined" value="true"/>
+        </insert>
+        <insert tableName="attribute_families" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Атрибуты продуктов(по умолчанию)"/>
+            <column name="code" value="default_product" />
+            <column name="is_user_defined" value="true"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.attribute_families_id_seq', (SELECT max(id) FROM nsi.attribute_families))
+        </sql>
+    </changeSet>
+    <changeSet id="insertDefaultAttributeGroups" author="katymtayev">
+        <insert tableName="attribute_groups" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Подписка"/>
+            <column name="attribute_family_id" value="1"/>
+            <column name="position" value="1"/>
+        </insert>
+        <insert tableName="attribute_groups" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Продукт подписки"/>
+            <column name="attribute_family_id" value="2"/>
+            <column name="position" value="1"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.attribute_groups_id_seq', (SELECT max(id) FROM nsi.attribute_groups))
+        </sql>
+    </changeSet>
+    <changeSet id="insertDefaultAttributeGroupMappings" author="katymtayev">
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="1"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="1"/>
+        </insert>
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="2"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="2"/>
+        </insert>
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="3"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="3"/>
+        </insert>
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="4"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="4"/>
+        </insert>
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="5"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="5"/>
+        </insert>
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="6"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="6"/>
+        </insert>
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="7"/>
+            <column name="attribute_group_id" value="1"/>
+            <column name="position" value="7"/>
+        </insert>
+
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="8"/>
+            <column name="attribute_group_id" value="2"/>
+            <column name="position" value="1"/>
+        </insert>
+
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="9"/>
+            <column name="attribute_group_id" value="2"/>
+            <column name="position" value="2"/>
+        </insert>
+
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="10"/>
+            <column name="attribute_group_id" value="2"/>
+            <column name="position" value="3"/>
+        </insert>
+
+        <insert tableName="attribute_group_mappings" schemaName="nsi">
+            <column name="attribute_id" value="11"/>
+            <column name="attribute_group_id" value="2"/>
+            <column name="position" value="4"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insertProducts" author="katymtayev">
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Кофе с собой"/>
+            <column name="sku" value="kss_starbucks" />
+            <column name="attribute_family_id" value="1"/>
+            <column name="type" value="COMPLEX"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Большой капучинно"/>
+            <column name="parent_id" value="1"/>
+            <column name="sku" value="kss-starbucks-2"/>
+            <column name="attribute_family_id" value="2"/>
+            <column name="type" value="SIMPLE"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="3"/>
+            <column name="name" value="Средний капучинно"/>
+            <column name="parent_id" value="1"/>
+            <column name="sku" value="kss-starbucks-3"/>
+            <column name="attribute_family_id" value="2"/>
+            <column name="type" value="SIMPLE"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="4" />
+            <column name="name" value="Экстремал" />
+            <column name="sku" value="extremal" />
+            <column name="attribute_family_id" value="1"/>
+            <column name="type" value="COMPLEX"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="5" />
+            <column name="name" value="Bradobrei" />
+            <column name="sku" value="bradobrei" />
+            <column name="attribute_family_id" value="1"/>
+            <column name="type" value="COMPLEX"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="6" />
+            <column name="name" value="Car wash" />
+            <column name="sku" value="carwash" />
+            <column name="attribute_family_id" value="1"/>
+            <column name="type" value="COMPLEX"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="7" />
+            <column name="name" value="Classic" />
+            <column name="sku" value="classic" />
+            <column name="attribute_family_id" value="1"/>
+            <column name="type" value="COMPLEX"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.products_id_seq', (SELECT max(id) FROM nsi.products))
+        </sql>
+    </changeSet>-->
+
+
+</databaseChangeLog>
