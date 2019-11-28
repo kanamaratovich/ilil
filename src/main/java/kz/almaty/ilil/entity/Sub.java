@@ -29,4 +29,7 @@ public class Sub extends BaseEntity {
 
     @OneToMany(mappedBy = "sub",cascade = CascadeType.ALL)
     private List<SubCategory> subCategories;
+
+    @OneToMany(mappedBy = "sub")
+    List<SubAttributeValue> attributeValues;
 }

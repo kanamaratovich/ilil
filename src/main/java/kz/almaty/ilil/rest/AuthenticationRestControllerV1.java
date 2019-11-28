@@ -1,10 +1,13 @@
 package kz.almaty.ilil.rest;
 
 import kz.almaty.ilil.dto.auth.AuthenticationRequestDto;
+import kz.almaty.ilil.dto.auth.AuthenticationResponseDto;
 import kz.almaty.ilil.dto.auth.RegistrationRequestDto;
 import kz.almaty.ilil.dto.UserDto;
 import kz.almaty.ilil.entity.User;
+import kz.almaty.ilil.security.JwtTokenFilter;
 import kz.almaty.ilil.security.JwtTokenProvider;
+import kz.almaty.ilil.security.JwtUserDetailsService;
 import kz.almaty.ilil.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -14,9 +17,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,34 +29,29 @@ import java.util.Map;
 @RequestMapping(value = "/api/v1/auth/")
 public class AuthenticationRestControllerV1 {
 
-    private final AuthenticationManager authenticationManager;
-
-    private final JwtTokenProvider jwtTokenProvider;
-
-    private final UserService userService;
-
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthenticationRestControllerV1(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService) {
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userService = userService;
-    }
+    private JwtUserDetailsService jwtUserDetailsService;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @RequestMapping(value = "login",method = RequestMethod.POST)
-    public ResponseEntity login(@RequestBody AuthenticationRequestDto requestDto){
+    public ResponseEntity<?> login(@RequestBody AuthenticationRequestDto requestDto){
         String username = requestDto.getUsername();
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,requestDto.getPassword()));
         }catch (AuthenticationException e){
-            //throw new BadCredentialsException("Invalid username or password");
-            Map<Object, Object> response = new HashMap<>();
+            throw new BadCredentialsException("Invalid username or password");
+            /*Map<Object, Object> response = new HashMap<>();
             response.put("errorMsg",e.getMessage());
 
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(response);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(response);*/
         }
 
-        User user = userService.findByUsername(username);
+        /*User user = jwtUserDetailsService.findByUsername(username);
 
         if(user == null)
             throw new UsernameNotFoundException("User with username: " + username + "not found");
@@ -67,11 +67,17 @@ public class AuthenticationRestControllerV1 {
         responseHeaders.set("Set-Token",token);
 
         return ResponseEntity
-                .ok().headers(responseHeaders).body(response);
+                .ok().headers(responseHeaders).body(response);*/
+
+        final UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(requestDto.getUsername());
+
+        final String jwt = jwtTokenProvider.generateToken(userDetails);
+
+        return ResponseEntity.ok(new AuthenticationResponseDto(jwt));
 
     }
 
-    @RequestMapping(value = "user",method = RequestMethod.POST)
+    /*@RequestMapping(value = "user",method = RequestMethod.POST)
     public ResponseEntity getUser(@RequestHeader("Set-Token") String token) {
 
         String username = jwtTokenProvider.getUsername(token);
@@ -103,7 +109,7 @@ public class AuthenticationRestControllerV1 {
 
         return ResponseEntity
                 .ok().body(response);
-    }
+    }*/
 
 
 }

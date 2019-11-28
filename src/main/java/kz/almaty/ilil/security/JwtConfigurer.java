@@ -1,3 +1,4 @@
+/*
 package kz.almaty.ilil.security;
 
 
@@ -21,3 +22,5 @@ public class JwtConfigurer extends SecurityConfigurerAdapter<DefaultSecurityFilt
     }
 }
 
+
+*/

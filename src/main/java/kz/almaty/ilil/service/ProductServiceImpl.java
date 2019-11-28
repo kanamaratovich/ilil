@@ -1,18 +1,14 @@
 package kz.almaty.ilil.service;
 
 import kz.almaty.ilil.dto.SubDto;
-import kz.almaty.ilil.entity.Product;
-import kz.almaty.ilil.entity.ProductType;
 import kz.almaty.ilil.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j

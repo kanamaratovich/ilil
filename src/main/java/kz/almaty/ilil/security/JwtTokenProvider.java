@@ -1,25 +1,18 @@
 package kz.almaty.ilil.security;
 
-import io.jsonwebtoken.*;
-import kz.almaty.ilil.entity.Role;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
-@Component
+@Service
 public class JwtTokenProvider {
 
     @Value("${jwt.token.secret}")
@@ -28,14 +21,49 @@ public class JwtTokenProvider {
     @Value("${jwt.token.expired}")
     private long validatiInMiliseconds;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        return bCryptPasswordEncoder;
+    public String extractUsername(String token){
+        return extractClaim(token, Claims::getSubject);
     }
+
+    public Date extractExpiration(String token){
+        return extractClaim(token,Claims::getExpiration);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims,T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        try{
+            return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        }catch (Exception ex){
+            throw ex;
+        }
+
+    }
+
+    private Boolean isTokenExpired(String token){
+        return extractExpiration(token).before(new Date());
+    }
+
+    public String generateToken(UserDetails userDetails){
+        Map<String,Object> claims = new HashMap<>();
+        return createToken(claims,userDetails.getUsername());
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
+        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + validatiInMiliseconds))
+                .signWith(SignatureAlgorithm.HS256,secret).compact();
+    }
+
+    public Boolean validateToken(String token,UserDetails userDetails){
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+    /*@Autowired
+    private UserDetailsService userDetailsService;
 
     @PostConstruct
     protected void init(){ secret = Base64.getEncoder().encodeToString(secret.getBytes()); }
@@ -73,7 +101,7 @@ public class JwtTokenProvider {
         return null;
     }
 
-    public boolean validateToken(String token){
+    public boolean validateToken(String token, UserDetails userDetails){
         try{
             Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
 
@@ -95,6 +123,6 @@ public class JwtTokenProvider {
         });
 
         return result;
-    }
+    }*/
 }
 

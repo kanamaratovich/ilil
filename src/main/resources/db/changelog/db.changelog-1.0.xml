@@ -53,20 +53,6 @@
 
         </createTable>
     </changeSet>
-
-    <!--
-    Создаем пользователя Админ по умолчанию
-    -->
-    <changeSet id="insert_default_user_admin" author="katymtayev">
-        <insert tableName="users" schemaName="CUST">
-            <column name="username" value="admin"/>
-            <column name="email" value="admin@petco.com"/>
-            <column name="first_name" value="admin"/>
-            <column name="last_name" value="admin"/>
-            <!--adminPass-->
-            <column name="password" value="$2a$10$avyglupAFn4VumO5CoOkE.1UWVs/aljoSaCxUIjAA5quBDa7aDoTa"/>
-        </insert>
-    </changeSet>
     
     <changeSet id="create_roles_table" author="katymtayev">
         <createTable tableName="roles" schemaName="CUST">
@@ -92,20 +78,6 @@
         </createTable>
     </changeSet>
 
-    <!--
-    Создаем две роли :
-                        ROLE_USER
-                        ROLE_ADMIN
-    -->
-    <changeSet id="insert_roles_ROLE_USER_and_ROLE_ADMIN" author="katymtayev">
-        <insert tableName="roles" schemaName="CUST">
-            <column name="name" value="ROLE_USER"/>
-        </insert>
-        <insert tableName="roles" schemaName="CUST">
-            <column name="name" value="ROLE_ADMIN"/>
-        </insert>
-    </changeSet>
-
     <changeSet id="create_user_roles_table" author="katymtayev">
         <createTable tableName="user_roles" schemaName="CUST">
             <column name="user_id" type="BIGINT">
@@ -129,20 +101,7 @@
                                  referencedColumnNames="id"
                                  referencedTableName="roles" baseTableSchemaName="CUST" referencedTableSchemaName="CUST"/>
     </changeSet>
-    <!--
-    Присваеваем две роли(ROLE_USER,ROLE_ADMIN) Админу
-    -->
-    <changeSet id="insert_user_roles_for_admin" author="katymtayev">
-        <insert tableName="user_roles" schemaName="CUST">
-            <column name="user_id" value="1"/>
-            <column name="role_id" value="1"/>
-        </insert>
-        <insert tableName="user_roles" schemaName="CUST">
-            <column name="user_id" value="1"/>
-            <column name="role_id" value="2"/>
-        </insert>
-    </changeSet>
-    
+
     <changeSet id="create_attributes_table" author="katymtayev">
         <createTable tableName="attributes" schemaName="nsi">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -617,8 +576,61 @@
         </createView>
     </changeSet>-->
 
+
+
+
+
+
+
+
+
+
+
+
     <!--INSERT DATA-->
-    <!--<changeSet id="insertCategories" author="katymtayev">
+    <!--
+    Создаем пользователя Админ по умолчанию
+    -->
+    <changeSet id="insert_default_user_admin" author="katymtayev">
+        <insert tableName="users" schemaName="CUST">
+            <column name="username" value="admin"/>
+            <column name="email" value="admin@petco.com"/>
+            <column name="first_name" value="admin"/>
+            <column name="last_name" value="admin"/>
+            <!--adminPass-->
+            <column name="password" value="$2a$10$avyglupAFn4VumO5CoOkE.1UWVs/aljoSaCxUIjAA5quBDa7aDoTa"/>
+        </insert>
+    </changeSet>
+
+    <!--
+    Создаем две роли :
+                        ROLE_USER
+                        ROLE_ADMIN
+    -->
+    <changeSet id="insert_roles_ROLE_USER_and_ROLE_ADMIN" author="katymtayev">
+        <insert tableName="roles" schemaName="CUST">
+            <column name="name" value="ROLE_USER"/>
+        </insert>
+        <insert tableName="roles" schemaName="CUST">
+            <column name="name" value="ROLE_ADMIN"/>
+        </insert>
+    </changeSet>
+
+    <!--
+    Присваеваем две роли(ROLE_USER,ROLE_ADMIN) Админу
+    -->
+    <changeSet id="insert_user_roles_for_admin" author="katymtayev">
+        <insert tableName="user_roles" schemaName="CUST">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="1"/>
+        </insert>
+        <insert tableName="user_roles" schemaName="CUST">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="2"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert_categories" author="katymtayev">
         <insert tableName="categories" schemaName="nsi">
             <column name="id" value="1" />
             <column name="name" value="Услуги" />
@@ -671,6 +683,645 @@
             <column name="position" value="4"/>
         </insert>
     </changeSet>
+
+    <changeSet id="insert_default_attributeFamily" author="katymtayev">
+        <insert tableName="attribute_families" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Атрибуты подписки(по умолчанию)"/>
+            <column name="code" value="default_sub" />
+            <column name="is_user_defined" value="true"/>
+        </insert>
+        <insert tableName="attribute_families" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Атрибуты продуктов(по умолчанию)"/>
+            <column name="code" value="default_product" />
+            <column name="is_user_defined" value="true"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.attribute_families_id_seq', (SELECT max(id) FROM nsi.attribute_families))
+        </sql>
+
+    </changeSet>
+
+    <!--END INSERT DATA-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!--INSERT ATTRIBUTES id=5 -->
+
+    <!--INSERT RECOMMEND ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_recommend_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Рекомендован"/>
+            <column name="code" value="recommend"/>
+            <column name="type" value="boolean"/>
+            <column name="position" value="1"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT RECOMMEND ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_ratings_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="4"/>
+            <column name="name" value="Рейтинг"/>
+            <column name="code" value="ratings"/>
+            <column name="type" value="float"/>
+            <column name="position" value="4"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT CITYCODES ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_cityCodes_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Коды городов"/>
+            <column name="code" value="cityCodes"/>
+            <column name="type" value="text"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="2"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT TAGS ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_tags_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="3"/>
+            <column name="name" value="Таги"/>
+            <column name="code" value="tags"/>
+            <column name="type" value="text"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="3"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcN0 ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcN0_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="5"/>
+            <column name="name" value="N0"/>
+            <column name="code" value="calcN0"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="5"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcNmin ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcNmin_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="6"/>
+            <column name="name" value="Nmin"/>
+            <column name="code" value="calcNmin"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="6"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcNmax ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcNmax_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="7"/>
+            <column name="name" value="Nmax"/>
+            <column name="code" value="calcNmax"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="7"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcNstep ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcNstep_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="8"/>
+            <column name="name" value="Nstep"/>
+            <column name="code" value="calcNstep"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="8"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcDstep ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcDstep_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="9"/>
+            <column name="name" value="Dstep"/>
+            <column name="code" value="calcDstep"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="9"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcDmin ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcDmin_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="10"/>
+            <column name="name" value="Dmin"/>
+            <column name="code" value="calcDmin"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="10"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcDmax ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcDmax_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="11"/>
+            <column name="name" value="Dmax"/>
+            <column name="code" value="calcDmax"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="11"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcD0 ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcD0_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="12"/>
+            <column name="name" value="D0"/>
+            <column name="code" value="calcD0"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="12"/>
+        </insert>
+    </changeSet>
+
+    <!--INSERT calcPmax ATTRIBUTE(BOOLEAN)-->
+    <changeSet id="insert_sub_calcPmax_attribute" author="katymtayev">
+        <insert tableName="attributes" schemaName="nsi">
+            <column name="id" value="13"/>
+            <column name="name" value="Pmax"/>
+            <column name="code" value="calcPmax"/>
+            <column name="type" value="integer"/>
+            <column name="is_visible_on_front" value="true"/>
+            <column name="is_configurable" value="true"/>
+            <column name="is_user_defined" value="true"/>
+            <column name="position" value="13"/>
+        </insert>
+    </changeSet>
+
+
+
+    <!-- END INSERT ATTRIBUTES-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!--INSERT TEST DATA-->
+    <changeSet id="insert_test_subs" author="katymtayev">
+        <insert tableName="subs" schemaName="nsi">
+            <column name="id" value="1"/>
+            <column name="name" value="Кофе с собой"/>
+            <column name="sku" value="kss_starbucks" />
+            <column name="attribute_family_id" value="1"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="2"/>
+            <column name="name" value="Большой капучинно"/>
+            <column name="sub_id" value="1"/>
+            <column name="sku" value="kss-starbucks-2"/>
+            <column name="attribute_family_id" value="2"/>
+            <column name="type" value="SIMPLE"/>
+        </insert>
+        <insert tableName="products" schemaName="nsi">
+            <column name="id" value="3"/>
+            <column name="name" value="Средний капучинно"/>
+            <column name="sub_id" value="1"/>
+            <column name="sku" value="kss-starbucks-3"/>
+            <column name="attribute_family_id" value="2"/>
+            <column name="type" value="SIMPLE"/>
+        </insert>
+        <insert tableName="subs" schemaName="nsi">
+            <column name="id" value="4" />
+            <column name="name" value="Экстремал" />
+            <column name="sku" value="extremal" />
+            <column name="attribute_family_id" value="1"/>
+        </insert>
+        <insert tableName="subs" schemaName="nsi">
+            <column name="id" value="5" />
+            <column name="name" value="Bradobrei" />
+            <column name="sku" value="bradobrei" />
+            <column name="attribute_family_id" value="1"/>
+        </insert>
+        <insert tableName="subs" schemaName="nsi">
+            <column name="id" value="6" />
+            <column name="name" value="Car wash" />
+            <column name="sku" value="carwash" />
+            <column name="attribute_family_id" value="1"/>
+        </insert>
+        <insert tableName="subs" schemaName="nsi">
+            <column name="id" value="7" />
+            <column name="name" value="Classic" />
+            <column name="sku" value="classic" />
+            <column name="attribute_family_id" value="1"/>
+        </insert>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.products_id_seq', (SELECT max(id) FROM nsi.products))
+        </sql>
+        <sql dbms="postgresql" endDelimiter=";">
+            SELECT setval('nsi.subs_id_seq', (SELECT max(id) FROM nsi.subs))
+        </sql>
+    </changeSet>
+    <changeSet id="insert_test_sub_categories" author="katymtayev">
+        <insert tableName="sub_categories" schemaName="nsi">
+            <column name="category_id" value="5"/>
+            <column name="sub_id" value="1"/>
+            <column name="position" value="2"/>
+        </insert>
+        <insert tableName="sub_categories" schemaName="nsi">
+            <column name="category_id" value="5"/>
+            <column name="sub_id" value="4"/>
+            <column name="position" value="3"/>
+        </insert>
+        <insert tableName="sub_categories" schemaName="nsi">
+            <column name="category_id" value="5"/>
+            <column name="sub_id" value="5"/>
+            <column name="position" value="1"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_recommend_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="1"/>
+            <column name="sub_id" value="1"/>
+            <column name="boolean_value" value="true"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_cityCodes_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="2"/>
+            <column name="sub_id" value="1"/>
+            <column name="text_value" value="ATY;NUR;KOKW"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="2"/>
+            <column name="sub_id" value="4"/>
+            <column name="text_value" value="ATY;NUR"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="2"/>
+            <column name="sub_id" value="5"/>
+            <column name="text_value" value="ATY;KOKW"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="2"/>
+            <column name="sub_id" value="6"/>
+            <column name="text_value" value="KOKW"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="2"/>
+            <column name="sub_id" value="7"/>
+            <column name="text_value" value="ATY"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_tags_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="3"/>
+            <column name="sub_id" value="1"/>
+            <column name="text_value" value="кофе с собой;кофе от starbucks;капучино"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="3"/>
+            <column name="sub_id" value="4"/>
+            <column name="text_value" value="аренда спорт оборудования;сноуборды;санки;лыжи"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="3"/>
+            <column name="sub_id" value="5"/>
+            <column name="text_value" value="barbershop;барбершоп;стрижка бороды;прически;укладка"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="3"/>
+            <column name="sub_id" value="6"/>
+            <column name="text_value" value="автомойка;химчистка;полировка"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="3"/>
+            <column name="sub_id" value="7"/>
+            <column name="text_value" value="автомойка;химчистка;полировка"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_ratings_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="4"/>
+            <column name="sub_id" value="1"/>
+            <column name="float_value" value="5.0"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="4"/>
+            <column name="sub_id" value="4"/>
+            <column name="float_value" value="4.0"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="4"/>
+            <column name="sub_id" value="5"/>
+            <column name="float_value" value="4.8"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="4"/>
+            <column name="sub_id" value="6"/>
+            <column name="float_value" value="3.0"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="4"/>
+            <column name="sub_id" value="7"/>
+            <column name="float_value" value="3.3"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_N0_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="5"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="5"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="5"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="5"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="5"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="5"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="5"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="5"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="5"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="5"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_Nmin_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="6"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="6"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="6"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="6"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="6"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_Nmax_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="7"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="10"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="7"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="10"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="7"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="10"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="7"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="10"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="7"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="10"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_Nstep_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="8"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="8"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="8"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="8"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="8"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert_test_D0_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="12"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="60"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="12"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="60"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="12"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="60"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="12"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="60"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="12"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="60"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_Dmin_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="10"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="10"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="10"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="10"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="10"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_Dmax_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="11"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="120"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="11"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="120"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="11"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="120"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="11"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="120"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="11"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="120"/>
+        </insert>
+    </changeSet>
+    <changeSet id="insert_test_Dstep_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="9"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="9"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="9"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="9"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="9"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+    </changeSet>
+
+
+    <changeSet id="insert_test_Pmax_subs" author="katymtayev">
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="13"/>
+            <column name="sub_id" value="1"/>
+            <column name="integer_value" value="20"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="13"/>
+            <column name="sub_id" value="4"/>
+            <column name="integer_value" value="30"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="13"/>
+            <column name="sub_id" value="5"/>
+            <column name="integer_value" value="20"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="13"/>
+            <column name="sub_id" value="6"/>
+            <column name="integer_value" value="25"/>
+        </insert>
+        <insert tableName="sub_attribute_values" schemaName="nsi">
+            <column name="attribute_id" value="13"/>
+            <column name="sub_id" value="7"/>
+            <column name="integer_value" value="25"/>
+        </insert>
+    </changeSet>
+
+    <!--
     <changeSet id="insertAttributes" author="katymtayev">
         <insert tableName="attributes" schemaName="nsi">
             <column name="id" value="1"/>
@@ -772,23 +1423,7 @@
         </sql>
 
     </changeSet>
-    <changeSet id="insertDefaultAttributeFamily" author="katymtayev">
-        <insert tableName="attribute_families" schemaName="nsi">
-            <column name="id" value="1"/>
-            <column name="name" value="Атрибуты подписки(по умолчанию)"/>
-            <column name="code" value="default_sub" />
-            <column name="is_user_defined" value="true"/>
-        </insert>
-        <insert tableName="attribute_families" schemaName="nsi">
-            <column name="id" value="2"/>
-            <column name="name" value="Атрибуты продуктов(по умолчанию)"/>
-            <column name="code" value="default_product" />
-            <column name="is_user_defined" value="true"/>
-        </insert>
-        <sql dbms="postgresql" endDelimiter=";">
-            SELECT setval('nsi.attribute_families_id_seq', (SELECT max(id) FROM nsi.attribute_families))
-        </sql>
-    </changeSet>
+
     <changeSet id="insertDefaultAttributeGroups" author="katymtayev">
         <insert tableName="attribute_groups" schemaName="nsi">
             <column name="id" value="1"/>
@@ -867,62 +1502,7 @@
             <column name="position" value="4"/>
         </insert>
     </changeSet>
-    <changeSet id="insertProducts" author="katymtayev">
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="1"/>
-            <column name="name" value="Кофе с собой"/>
-            <column name="sku" value="kss_starbucks" />
-            <column name="attribute_family_id" value="1"/>
-            <column name="type" value="COMPLEX"/>
-        </insert>
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="2"/>
-            <column name="name" value="Большой капучинно"/>
-            <column name="parent_id" value="1"/>
-            <column name="sku" value="kss-starbucks-2"/>
-            <column name="attribute_family_id" value="2"/>
-            <column name="type" value="SIMPLE"/>
-        </insert>
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="3"/>
-            <column name="name" value="Средний капучинно"/>
-            <column name="parent_id" value="1"/>
-            <column name="sku" value="kss-starbucks-3"/>
-            <column name="attribute_family_id" value="2"/>
-            <column name="type" value="SIMPLE"/>
-        </insert>
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="4" />
-            <column name="name" value="Экстремал" />
-            <column name="sku" value="extremal" />
-            <column name="attribute_family_id" value="1"/>
-            <column name="type" value="COMPLEX"/>
-        </insert>
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="5" />
-            <column name="name" value="Bradobrei" />
-            <column name="sku" value="bradobrei" />
-            <column name="attribute_family_id" value="1"/>
-            <column name="type" value="COMPLEX"/>
-        </insert>
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="6" />
-            <column name="name" value="Car wash" />
-            <column name="sku" value="carwash" />
-            <column name="attribute_family_id" value="1"/>
-            <column name="type" value="COMPLEX"/>
-        </insert>
-        <insert tableName="products" schemaName="nsi">
-            <column name="id" value="7" />
-            <column name="name" value="Classic" />
-            <column name="sku" value="classic" />
-            <column name="attribute_family_id" value="1"/>
-            <column name="type" value="COMPLEX"/>
-        </insert>
-        <sql dbms="postgresql" endDelimiter=";">
-            SELECT setval('nsi.products_id_seq', (SELECT max(id) FROM nsi.products))
-        </sql>
-    </changeSet>-->
+    -->
 
 
 </databaseChangeLog>

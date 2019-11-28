@@ -3,10 +3,9 @@ package kz.almaty.ilil.entity;
 import lombok.Data;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Entity
 @Table(name = "categories", schema = "nsi")
@@ -33,6 +32,13 @@ public class Category extends BaseEntity {
 
     @Column(name = "image")
     private String image;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "parent_id",referencedColumnName = "id",updatable = false,insertable = false)
+    private Category parentCategory;
+
+    @OneToMany(mappedBy = "parentCategory")
+    private List<Category> childCategories;
 
     /*@OneToMany(mappedBy = "categories",cascade= CascadeType.ALL)
     private List<ProductCategory> productCategoryList;*/
