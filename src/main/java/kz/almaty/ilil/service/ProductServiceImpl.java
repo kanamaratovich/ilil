@@ -1,13 +1,13 @@
 package kz.almaty.ilil.service;
 
-import kz.almaty.ilil.dto.SubDto;
+import kz.almaty.ilil.entity.Product;
+import kz.almaty.ilil.entity.Status;
 import kz.almaty.ilil.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,27 +18,34 @@ public class ProductServiceImpl implements ProductService{
     private ProductRepository productRepository;
 
     @Override
-    public Page<SubDto> getAllSubs(Pageable pageable, List<String> filters,Long categoryId) {
-        Page<SubDto> subs = null;
-/*
-        List<Product> allSubs = productRepository.findByType(ProductType.COMPLEX);
+    public List<Product> getAllProducts(List<String> filters, Long subId) {
+        List<Product> products = null;
+        if(subId!=null){
+            products = productRepository.findAllBySubIdAndStatus(subId, Status.ACTIVE);
+        }else{
+            products = productRepository.findAllByStatus(Status.ACTIVE);
+        }
 
-        *//*if(categoryId!=null){
-            if(allSubs!=null && allSubs.size()>0){
-                for(Product sub :allSubs){
-                    if(sub.getProductCategories().stream().filter(productCategory -> productCategory.getCategory().getId().equals(categoryId)).count()==0){
-                        allSubs.removeIf(product -> product.getId().equals(sub.getId()));
+        List<Product> copyProductList = new ArrayList<>(products);
+
+        if(filters!=null && filters.size()>0){
+            for(Product product : copyProductList){
+                for(String filter : filters){
+                    String code = filter.split("=")[0];
+                    String value = filter.split("=")[1];
+
+                    if(!(product.getAttributeValues()!=null &&
+                            product.getAttributeValues().size()>0 &&
+                            product.getAttributeValues().stream()
+                            .filter(productAttributeValue ->
+                                    productAttributeValue.getAttribute().getCode().equals(code)
+                                            && productAttributeValue.getTextValue().equals(value)).count()>0)){
+                        products.remove(product);
                     }
                 }
             }
-        }*//*
+        }
 
-        if(filters==null){
-            int start = (int) pageable.getOffset();
-            int end = (start + pageable.getPageSize()) > allSubs.size() ? allSubs.size() : (start + pageable.getPageSize());
-
-            subs = new PageImpl<>(allSubs.stream().map(product -> SubDto.fromProduct(product)).collect(Collectors.toList()).subList(start,end),pageable,allSubs.size());
-        }*/
-        return subs;
+        return products;
     }
 }

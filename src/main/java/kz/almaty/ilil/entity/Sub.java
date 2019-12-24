@@ -12,24 +12,24 @@ import java.util.List;
 @Data
 @ToString
 public class Sub extends BaseEntity {
-    @NotNull
-    @Column(name = "name",nullable = false)
-    private String name;
-
-    @NotNull
-    @Column(name = "sku",unique = true,nullable = false)
-    private String sku;
 
     @NotNull
     @Column(name = "attribute_family_id",nullable = false)
     private Long attributeFamilyId;
 
-    @Column(name = "position")
-    private Integer position;
+    @NotNull
+    @Column(name = "partner_id",nullable = false)
+    private Long partnerId;
 
     @OneToMany(mappedBy = "sub",cascade = CascadeType.ALL)
     private List<SubCategory> subCategories;
 
     @OneToMany(mappedBy = "sub")
     List<SubAttributeValue> attributeValues;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "partner_id",referencedColumnName = "id",updatable = false,insertable = false)
+    private Partner partner;
+
+
 }

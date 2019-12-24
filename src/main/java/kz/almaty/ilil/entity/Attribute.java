@@ -5,8 +5,10 @@ import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Entity
 @Table(name = "attributes",schema = "nsi")
@@ -38,12 +40,6 @@ public class Attribute extends BaseEntity{
     @Column(name = "is_unique")
     private Boolean isUnique;
 
-    @Column(name = "value_per_locale")
-    private Boolean valuePerLocale;
-
-    @Column(name = "value_per_channel")
-    private Boolean valuePerChannel;
-
     @Column(name = "is_filterable")
     private Boolean isFilterable;
 
@@ -56,6 +52,6 @@ public class Attribute extends BaseEntity{
     @Column(name = "is_visible_on_front")
     private Boolean isVisibleOnFront;
 
-    /*@OneToMany(mappedBy = "attribute")
-    List<AttributeOption> attributeOptions;*/
+    @OneToMany(mappedBy = "attribute")
+    List<AttributeOption> attributeOptions;
 }

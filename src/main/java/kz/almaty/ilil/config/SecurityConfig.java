@@ -55,10 +55,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(LOGIN_ENDPOINT,REGISTER_ENDPOINT,
                        "/api/v1/categories",
                         "/api/v1/subs",
-                        "/api/v1/subs/search/findByCategoryId").permitAll()
+                        "/api/v1/products",
+                        "/api/v1/attributeFamilies",
+                        "/api/v1/attributes",
+                        "/api/v1/attributeFamilies/search/findByCode").permitAll()
                 .antMatchers(ADMIN_ENDPOINT).hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
         http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
     }
 

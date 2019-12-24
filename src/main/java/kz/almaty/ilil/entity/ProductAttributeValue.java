@@ -9,10 +9,10 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Entity
-@Table(name = "sub_attribute_values",schema = "nsi")
+@Table(name = "product_attribute_values",schema = "nsi")
 @Data
 @ToString
-public class SubAttributeValue extends BaseEntity{
+public class ProductAttributeValue extends BaseEntity{
     @Size(min = 1, max = 100)
     @Column(name = "text_value")
     private String textValue;
@@ -36,18 +36,19 @@ public class SubAttributeValue extends BaseEntity{
     private String jsonValue;
 
     @NotNull
-    @Column(name = "sub_id")
-    private Long subId;
+    @Column(name = "product_id")
+    private Long productId;
 
     @NotNull
     @Column(name = "attribute_id")
     private Long attributeId;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "sub_id",referencedColumnName = "id",updatable = false,insertable = false)
-    private Sub sub;
+    @JoinColumn(name = "product_id",referencedColumnName = "id",updatable = false,insertable = false)
+    private Product product;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "attribute_id",referencedColumnName = "id",updatable = false,insertable = false)
     private Attribute attribute;
 }
+

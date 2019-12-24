@@ -5,20 +5,13 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Entity
 @Table(name = "products", schema = "nsi")
 @Data
 @ToString
 public class Product extends BaseEntity {
-
-    @NotNull
-    @Column(name = "name",nullable = false)
-    private String name;
-
-    @NotNull
-    @Column(name = "sku",unique = true,nullable = false)
-    private String sku;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -32,10 +25,11 @@ public class Product extends BaseEntity {
     @Column(name = "sub_id")
     private Long subId;
 
-    @Column(name = "position")
-    private Integer position;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "sub_id",referencedColumnName = "id",updatable = false,insertable = false)
+    private Sub sub;
 
-    /*@OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
-    private List<ProductCategory> productCategories;*/
+    @OneToMany(mappedBy = "product")
+    List<ProductAttributeValue> attributeValues;
 
 }

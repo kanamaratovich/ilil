@@ -71,7 +71,7 @@ public class SubServiceImpl implements SubService{
         if(categoryId!=null){
             subs = subRepository.findByCategoryId(categoryId);
         }else{
-            subs = subRepository.findAllByStatusOrderByPosition(Status.ACTIVE);
+            subs = subRepository.findAllByStatus(Status.ACTIVE);
         }
         if(recommend!=null && recommend || cityCode!=null && !cityCode.isEmpty()){
             subs = subs.stream().filter(sub -> sub.getAttributeValues()!=null && sub.getAttributeValues().size()>0).collect(Collectors.toList());
@@ -99,7 +99,6 @@ public class SubServiceImpl implements SubService{
                 }
             }
         }
-
 
         return subs;
     }

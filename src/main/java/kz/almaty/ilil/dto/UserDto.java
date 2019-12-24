@@ -32,7 +32,6 @@ public class UserDto {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEmail(email);
-
         return user;
     }
 
